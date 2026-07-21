@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chicago 2026 — Itinerario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lake:#0B3B5C; --lake-deep:#062639; --flag-blue:#3FA9DC; --flag-red:#C8102E;
+    --limestone:#EFE8D8; --limestone-dim:#E2D9C4; --ink:#1B1B1B; --paper:#FBF8F1;
+    --line:#c9bfa4; --gold:#D9A441; --green:#2f7a4f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--flag-red); color:#fff;}
+
+  .hero{position:relative; background:linear-gradient(180deg,var(--lake-deep) 0%,var(--lake) 55%, #14547d 100%); color:var(--limestone); padding:50px 24px 0; overflow:hidden;}
+  .hero-stars{position:absolute; inset:0; opacity:.09; pointer-events:none; background-image: radial-gradient(circle, var(--flag-red) 2.5px, transparent 2.6px); background-size:56px 56px;}
+  .hero-inner{position:relative; max-width:980px; margin:0 auto; text-align:center; padding-bottom:18px;}
+  .eyebrow{font-weight:600; letter-spacing:.24em; text-transform:uppercase; font-size:12px; color:var(--flag-blue); margin-bottom:14px;}
+  h1{font-family:'Big Shoulders Display', sans-serif; font-weight:900; font-size:clamp(52px,10vw,116px); line-height:.88; margin:0 0 8px; letter-spacing:.01em; text-transform:uppercase;}
+  .hero-sub{font-family:'Source Serif 4', serif; font-style:italic; font-size:clamp(16px,2.3vw,20px); color:#cfe3ef; margin:0 0 26px;}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:8px;}
+  .chip{border:1px solid rgba(239,232,216,.35); background:rgba(255,255,255,.06); padding:8px 16px; border-radius:999px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:8px;}
+  .chip b{font-weight:700;color:#fff;}
+  .skyline-wrap{position:relative; width:100%; line-height:0;}
+  .skyline-wrap svg{width:100%; height:auto; display:block;}
+  .flag-strip{height:34px; width:100%; background:
+      linear-gradient(#fff,#fff) 0 0/100% 6px no-repeat, linear-gradient(#3FA9DC,#3FA9DC) 0 6px/100% 8px no-repeat,
+      linear-gradient(#fff,#fff) 0 14px/100% 6px no-repeat, linear-gradient(#3FA9DC,#3FA9DC) 0 20px/100% 8px no-repeat,
+      linear-gradient(#fff,#fff) 0 28px/100% 6px no-repeat;
+    position:relative; display:flex; align-items:center; justify-content:center; gap:52px;}
+  .flag-strip svg{width:22px; height:22px; position:relative; z-index:2;}
+
+  .nav-wrap{background:var(--lake-deep); padding:0 0 30px; position:sticky; top:0; z-index:50; box-shadow:0 6px 18px rgba(0,0,0,.2);}
+  .track-scroll{max-width:1120px; margin:0 auto; overflow-x:auto; padding:22px 24px 6px;}
+  .track{position:relative; display:flex; min-width:900px; padding-top:6px;}
+  .track::before{content:""; position:absolute; left:0; right:0; top:22px; height:4px; background:repeating-linear-gradient(90deg, var(--flag-blue) 0 18px, transparent 18px 26px); opacity:.9;}
+  .stop{flex:1; text-align:center; position:relative; cursor:pointer; background:none; border:none; color:#a9c3d4; padding-top:0;}
+  .stop .dot{width:16px; height:16px; border-radius:50%; background:var(--lake-deep); border:3px solid var(--flag-blue); margin:14px auto 10px; position:relative; z-index:2; transition:.2s;}
+  .stop .lbl{font-size:11px; font-weight:600; letter-spacing:.03em; line-height:1.3; color:#a9c3d4;}
+  .stop .day-tag{display:block; font-family:'Big Shoulders Display'; font-weight:700; font-size:15px; color:#e7eef2; letter-spacing:.03em; margin-bottom:1px;}
+  .stop.active .dot{ background:var(--flag-red); border-color:var(--flag-red); transform:scale(1.3); }
+  .stop.active .lbl, .stop.active .day-tag{ color:#fff; }
+  .stop:hover .dot{ border-color:#fff; }
+  .stop .mini-prog{position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--flag-blue); font-weight:700; letter-spacing:.03em;}
+
+  .wrap{max-width:860px; margin:0 auto; padding:40px 22px 30px;}
+  .panel{display:none;}
+  .panel.active{display:block; animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .banner{border-radius:16px; overflow:hidden; margin-bottom:22px; box-shadow:0 8px 22px rgba(6,38,57,.18); position:relative;}
+  .banner svg{width:100%; height:auto; display:block;}
+  .banner-caption{position:absolute; left:16px; bottom:12px; color:#fff; font-family:'Big Shoulders Display'; font-weight:700; font-size:22px; text-transform:uppercase; text-shadow:0 2px 8px rgba(0,0,0,.45); letter-spacing:.02em;}
+
+  .day-head{display:flex; align-items:center; gap:16px; margin-bottom:6px; border-bottom:3px solid var(--ink); padding-bottom:16px;}
+  .day-num{font-family:'Big Shoulders Display'; font-weight:900; font-size:40px; color:var(--flag-red); line-height:1;}
+  .day-titles h2{font-family:'Big Shoulders Display'; font-weight:700; text-transform:uppercase; font-size:26px; margin:0 0 2px; letter-spacing:.01em;}
+  .day-titles .date{font-family:'Source Serif 4'; font-style:italic; color:#555; font-size:15px;}
+
+  .day-strip{display:flex; align-items:center; gap:10px; margin-top:16px; flex-wrap:wrap;}
+  .day-theme{display:inline-block; background:var(--flag-blue); color:#fff; font-size:12px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; padding:6px 13px; border-radius:4px;}
+  .cost-chip{display:inline-flex; align-items:center; gap:6px; background:#eef4ee; color:var(--green); border:1px solid #cfe4d4; font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+  .progress-track{flex:1; min-width:120px; max-width:180px; height:8px; background:var(--limestone-dim); border-radius:99px; overflow:hidden; position:relative;}
+  .progress-fill{height:100%; width:0%; background:var(--flag-red); transition:width .3s ease;}
+  .progress-label{font-size:11.5px; font-weight:600; color:#777; white-space:nowrap;}
+
+  .timeline{margin-top:26px; position:relative; padding-left:30px;}
+  .timeline::before{content:""; position:absolute; left:9px; top:6px; bottom:6px; width:2px; background:var(--line);}
+  .item{position:relative; padding-bottom:24px; cursor:pointer; user-select:none;}
+  .item:last-child{padding-bottom:0;}
+  .check{position:absolute; left:-30px; top:2px; width:19px; height:19px; border-radius:50%; background:var(--paper); border:2px solid var(--flag-red); transition:.15s; display:flex; align-items:center; justify-content:center;}
+  .check svg{width:11px; height:11px; opacity:0; transition:.15s;}
+  .item.done .check{background:var(--flag-red);}
+  .item.done .check svg{opacity:1;}
+  .item.done h3, .item.done .time{opacity:.45; text-decoration:line-through;}
+  .item.done p{opacity:.45;}
+  .item .time{font-family:'Big Shoulders Display'; font-weight:700; font-size:17px; color:var(--lake); letter-spacing:.02em;}
+  .item h3{margin:2px 0 4px; font-size:16.5px; font-weight:700; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .price{font-size:12px; font-weight:700; padding:2px 9px; border-radius:99px;}
+  .price.free{background:#eef4ee; color:var(--green); border:1px solid #cfe4d4;}
+  .price.paid{background:#fdf1e2; color:#a3660c; border:1px solid #f0d9b3;}
+  .item p{margin:0; font-size:14.5px; line-height:1.55; color:#3a3a3a;}
+  .item .meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .tag{font-size:11.5px; font-weight:600; color:var(--lake); background:var(--limestone); padding:3px 9px; border-radius:4px; border:1px solid var(--limestone-dim);}
+
+  .note{margin-top:18px; background:#fff8e6; border-left:3px solid var(--gold); padding:12px 14px; font-size:13.5px; border-radius:0 6px 6px 0; color:#5a4620; line-height:1.5;}
+  .note b{color:#8a6416;}
+  .arrival .item .check{border-color:var(--flag-blue);}
+  .arrival .item.done .check{background:var(--flag-blue);}
+
+  .dial-box{margin-top:22px; background:var(--limestone); border-radius:14px; padding:20px; display:flex; align-items:center; gap:22px; flex-wrap:wrap;}
+  .dial{position:relative; width:100px; height:100px; flex:0 0 100px;}
+  .dial svg{width:100%; height:100%;}
+  .dial-txt{flex:1; min-width:180px;}
+  .dial-txt .d-title{font-family:'Big Shoulders Display'; font-weight:700; font-size:15px; text-transform:uppercase; color:var(--lake); margin-bottom:3px;}
+  .dial-txt p{margin:0; font-size:13.5px; color:#444; line-height:1.5;}
+
+  .footnotes{max-width:860px; margin:10px auto 20px; padding:0 22px;}
+  .footnotes h4{font-family:'Big Shoulders Display'; text-transform:uppercase; font-size:20px; border-bottom:2px solid var(--ink); padding-bottom:8px; margin-bottom:14px; display:flex; align-items:center; gap:10px;}
+  .footnotes h4 svg{width:20px; height:20px;}
+  .footnotes ul{padding-left:20px; margin:0;}
+  .footnotes li{font-size:14px; line-height:1.6; margin-bottom:8px; color:#333;}
+
+  .share-bar{max-width:860px; margin:0 auto 50px; padding:0 22px; display:flex; gap:12px; flex-wrap:wrap;}
+  .share-btn{flex:1; min-width:180px; text-align:center; padding:14px 18px; border-radius:10px; font-family:'Big Shoulders Display'; font-weight:700; font-size:15px; letter-spacing:.02em; text-transform:uppercase; cursor:pointer; border:none; display:flex; align-items:center; justify-content:center; gap:8px;}
+  .share-btn.primary{background:var(--flag-red); color:#fff;}
+  .share-btn.secondary{background:var(--lake); color:#fff;}
+  .share-btn svg{width:16px; height:16px;}
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:11px 20px; border-radius:8px; font-size:13.5px; opacity:0; transition:.25s; pointer-events:none; z-index:100;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:640px){
+    .hero{padding:36px 16px 0;}
+    .day-num{font-size:32px;}
+    .day-titles h2{font-size:20px;}
+    .flag-strip{gap:26px;}
+    .banner-caption{font-size:17px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-stars"></div>
+  <div class="hero-inner">
+    <div class="eyebrow">Itinerario de viaje</div>
+    <h1>Chicago</h1>
+    <p class="hero-sub">La Ciudad de los Hombros Grandes — 8 días junto al lago Michigan</p>
+    <div class="hero-meta">
+      <span class="chip">🛬 Llegada: <b>sáb 26 sept, 11:00 pm</b></span>
+      <span class="chip">🛫 Regreso: <b>sáb 3 oct</b> · Bogotá 11:00 pm</span>
+      <span class="chip" id="overallChip">✔️ <b>0 / 0</b> actividades marcadas</span>
+    </div>
+  </div>
+  <div class="skyline-wrap">
+    <svg viewBox="0 0 1200 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="70" width="40" height="90" fill="#0a2e47"/><rect x="45" y="50" width="34" height="110" fill="#0a2e47"/>
+      <rect x="84" y="90" width="26" height="70" fill="#0a2e47"/><rect x="120" y="60" width="30" height="100" fill="#0e3a5a"/>
+      <circle cx="175" cy="82" r="26" fill="#0e3a5a"/><rect x="163" y="82" width="24" height="78" fill="#0e3a5a"/>
+      <circle cx="215" cy="82" r="26" fill="#0a2e47"/><rect x="203" y="82" width="24" height="78" fill="#0a2e47"/>
+      <rect x="255" y="40" width="28" height="120" fill="#0e3a5a"/>
+      <rect x="300" y="30" width="46" height="130" fill="#0a2e47"/><rect x="308" y="18" width="14" height="14" fill="#0a2e47"/><rect x="326" y="18" width="14" height="14" fill="#0a2e47"/>
+      <rect x="365" y="65" width="30" height="95" fill="#0e3a5a"/><rect x="400" y="85" width="24" height="75" fill="#0a2e47"/><rect x="430" y="55" width="30" height="105" fill="#0e3a5a"/>
+      <polygon points="475,45 505,45 500,160 480,160" fill="#0a2e47"/>
+      <rect x="515" y="75" width="26" height="85" fill="#0e3a5a"/><rect x="546" y="95" width="22" height="65" fill="#0a2e47"/><rect x="574" y="60" width="30" height="100" fill="#0e3a5a"/><rect x="610" y="80" width="26" height="80" fill="#0a2e47"/>
+      <rect x="646" y="50" width="24" height="110" fill="#0e3a5a"/><rect x="654" y="30" width="8" height="20" fill="#0e3a5a"/>
+      <rect x="682" y="90" width="24" height="70" fill="#0a2e47"/><rect x="712" y="65" width="30" height="95" fill="#0e3a5a"/><rect x="748" y="88" width="24" height="72" fill="#0a2e47"/><rect x="780" y="55" width="28" height="105" fill="#0e3a5a"/>
+      <rect x="815" y="78" width="24" height="82" fill="#0a2e47"/><rect x="846" y="40" width="32" height="120" fill="#0e3a5a"/><rect x="885" y="95" width="22" height="65" fill="#0a2e47"/><rect x="914" y="70" width="26" height="90" fill="#0e3a5a"/>
+      <rect x="946" y="88" width="24" height="72" fill="#0a2e47"/><rect x="977" y="58" width="28" height="102" fill="#0e3a5a"/>
+      <circle cx="1055" cy="105" r="34" fill="none" stroke="#0e3a5a" stroke-width="6"/><line x1="1055" y1="71" x2="1055" y2="139" stroke="#0e3a5a" stroke-width="3"/><line x1="1021" y1="105" x2="1089" y2="105" stroke="#0e3a5a" stroke-width="3"/><rect x="1050" y="139" width="10" height="21" fill="#0e3a5a"/>
+      <rect x="1105" y="85" width="26" height="75" fill="#0a2e47"/><rect x="1140" y="65" width="30" height="95" fill="#0e3a5a"/><rect x="1175" y="95" width="25" height="65" fill="#0a2e47"/>
+      <rect x="0" y="155" width="1200" height="5" fill="#062639"/>
+    </svg>
+  </div>
+  <div class="flag-strip">
+    <svg viewBox="0 0 24 24"><polygon points="12,1 15,9 23,9 16.5,14 19,22 12,17 5,22 7.5,14 1,9 9,9" fill="#C8102E"/></svg>
+    <svg viewBox="0 0 24 24"><polygon points="12,1 15,9 23,9 16.5,14 19,22 12,17 5,22 7.5,14 1,9 9,9" fill="#C8102E"/></svg>
+    <svg viewBox="0 0 24 24"><polygon points="12,1 15,9 23,9 16.5,14 19,22 12,17 5,22 7.5,14 1,9 9,9" fill="#C8102E"/></svg>
+    <svg viewBox="0 0 24 24"><polygon points="12,1 15,9 23,9 16.5,14 19,22 12,17 5,22 7.5,14 1,9 9,9" fill="#C8102E"/></svg>
+  </div>
+</div>
+
+<div class="nav-wrap">
+  <div class="track-scroll"><div class="track" id="track"></div></div>
+</div>
+
+<div class="wrap" id="panels"></div>
+
+<div class="share-bar">
+  <button class="share-btn primary" id="shareBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+    Compartir enlace
+  </button>
+  <button class="share-btn secondary" id="printBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Guardar / imprimir
+  </button>
+</div>
+
+<div class="footnotes">
+  <h4><svg viewBox="0 0 24 24" fill="none" stroke="#C8102E" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Antes de salir</h4>
+  <ul>
+    <li><b>Six Flags cambió al viernes:</b> Great America cierra los miércoles en temporada de Fright Fest — solo abre viernes a domingo (y algunos jueves). Se movió al viernes 2 de octubre, de 5:00 a 11:00 pm, siguiendo el patrón real de horarios de "Fright by Night" de esas fechas. Conviene confirmar el calendario exacto de 2026 más cerca de la fecha en sixflags.com.</li>
+    <li><b>Se eliminó el Architecture River Cruise</b> del lunes — solo queda el Water Taxi como paseo por el río.</li>
+    <li><b>Apple Store Michigan Avenue</b> abre a las 10:00 am los domingos — por eso el día 1 arranca a esa hora.</li>
+    <li><b>Precios:</b> son aproximados en USD por persona, tomados de tarifas públicas vigentes (2026) y pueden variar por fecha, temporada o promociones — confirma antes de comprar. Los montos "por día" no incluyen comida ni compras, solo entradas/atracciones con costo fijo.</li>
+    <li><b>Indiana Dunes National Park:</b> la tarifa de $25 es por vehículo (no por persona) y cubre 7 días.</li>
+    <li><b>Balloon Museum:</b> en 2828 N Pulaski Rd (Avondale), exhibición extendida hasta septiembre 2026 — confirma la fecha exacta de cierre antes de comprar boletos.</li>
+    <li><b>Transporte:</b> como el hospedaje queda en las afueras, para Six Flags, Dunas y Aurora lo más práctico es auto rentado o Uber/Lyft.</li>
+    <li><b>Clima:</b> finales de septiembre / inicios de octubre en Chicago ronda los 12–20°C, con tardes frescas junto al lago — buena idea llevar capas para el atardecer en 360 CHICAGO.</li>
+    <li><b>Vuelo de regreso:</b> Chicago y Bogotá comparten huso horario en estas fechas (ambas UTC-5); con un vuelo de 6-7 horas, el despegue estimado sería alrededor de las 4:00–4:30 pm para llegar a Bogotá cerca de las 11:00 pm — confirma con tu aerolínea.</li>
+  </ul>
+</div>
+
+<div class="toast" id="toast">Enlace copiado — listo para compartir</div>
+
+<script>
+const CHECK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+function priceTag(txt, free){
+  return `<span class="price ${free? 'free':'paid'}">${free?'GRATIS':txt}</span>`;
+}
+
+function dial(minutes, label){
+  const pct = Math.min(minutes/90,1); const r=42, c=2*Math.PI*r; const dash = c*pct;
+  return `<div class="dial-box">
+    <div class="dial"><svg viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="#E2D9C4" stroke-width="9"/>
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="#C8102E" stroke-width="9" stroke-linecap="round" stroke-dasharray="${dash} ${c}" transform="rotate(-90 50 50)"/>
+      <text x="50" y="46" text-anchor="middle" font-family="Big Shoulders Display" font-weight="700" font-size="20" fill="#0B3B5C">${minutes}</text>
+      <text x="50" y="61" text-anchor="middle" font-family="Inter" font-size="9" fill="#777">minutos</text>
+    </svg></div>
+    <div class="dial-txt"><div class="d-title">Distancia desde el centro</div><p>${label}</p></div>
+  </div>`;
+}
+
+// ---------- Illustrated day banners (original flat-design SVGs, 800x220) ----------
+const BANNERS = {
+  arrival: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#041521"/><stop offset="100%" stop-color="#0B3B5C"/></linearGradient></defs>
+    <rect width="800" height="220" fill="url(#skyA)"/>
+    <circle cx="680" cy="55" r="28" fill="#F4E9C9"/><circle cx="668" cy="48" r="24" fill="#041521"/>
+    <circle cx="120" cy="40" r="1.6" fill="#fff"/><circle cx="200" cy="70" r="1.6" fill="#fff"/><circle cx="300" cy="30" r="1.6" fill="#fff"/><circle cx="420" cy="60" r="1.6" fill="#fff"/><circle cx="520" cy="25" r="1.6" fill="#fff"/><circle cx="80" cy="90" r="1.3" fill="#fff"/><circle cx="600" cy="90" r="1.3" fill="#fff"/>
+    <g fill="none" stroke="#3FA9DC" stroke-width="2.5" stroke-linecap="round"><path d="M50 150l500-90-60 50 60 10-500 60z" fill="#3FA9DC"/></g>
+    <rect x="0" y="185" width="800" height="35" fill="#02121d"/>
+    <rect x="30" y="150" width="24" height="35" fill="#062639"/><rect x="70" y="130" width="20" height="55" fill="#02121d"/><rect x="620" y="140" width="26" height="45" fill="#062639"/><rect x="660" y="120" width="22" height="65" fill="#02121d"/><rect x="700" y="150" width="24" height="35" fill="#062639"/>
+  </svg>`,
+  day1: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3FA9DC"/><stop offset="100%" stop-color="#bfe4f5"/></linearGradient></defs>
+    <rect width="800" height="220" fill="url(#sky1)"/>
+    <circle cx="700" cy="45" r="32" fill="#FFE9A8"/>
+    <rect x="0" y="170" width="800" height="50" fill="#8fbfd6"/>
+    <ellipse cx="230" cy="150" rx="95" ry="55" fill="#c0392b" opacity=".92"/>
+    <ellipse cx="230" cy="150" rx="70" ry="38" fill="#a5281c" opacity=".5"/>
+    <ellipse cx="200" cy="130" rx="18" ry="10" fill="#fff" opacity=".35"/>
+    <g stroke="#0B3B5C" stroke-width="3" fill="none" opacity=".55"><path d="M0 190q40-15 80 0t80 0 80 0 80 0 80 0 80 0 80 0 80 0 80 0"/></g>
+    <g transform="translate(500,60)"><path d="M20 4c-5-10-20-8-19 4-9-3-16 6-11 15-8 5-4 17 6 17h35c9 0 12-11 5-17 6-9-2-19-11-15 1-12-15-14-20-4z" fill="#fff" opacity=".9"/></g>
+    <rect x="55" y="60" width="20" height="110" fill="#0e3a5a"/><rect x="90" y="80" width="18" height="90" fill="#0a2e47"/>
+    <rect x="640" y="90" width="22" height="80" fill="#0a2e47"/><rect x="670" y="70" width="20" height="100" fill="#0e3a5a"/><rect x="700" y="100" width="20" height="70" fill="#0a2e47"/>
+  </svg>`,
+  day2: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0B3B5C"/><stop offset="100%" stop-color="#5f9ec2"/></linearGradient></defs>
+    <rect width="800" height="220" fill="url(#sky2)"/>
+    <rect x="0" y="185" width="800" height="35" fill="#2c5f78"/>
+    <g opacity=".5" stroke="#dff1fa" stroke-width="2"><path d="M0 195q30-8 60 0t60 0 60 0 60 0 60 0 60 0 60 0 60 0 60 0 60 0 60 0"/></g>
+    <rect x="350" y="20" width="100" height="170" fill="#0a2e47"/>
+    <rect x="365" y="4" width="30" height="18" fill="#0a2e47"/><rect x="405" y="4" width="30" height="18" fill="#0a2e47"/>
+    <g fill="#FFE9A8" opacity=".8">
+      <rect x="360" y="35" width="10" height="14"/><rect x="378" y="35" width="10" height="14"/><rect x="396" y="35" width="10" height="14"/><rect x="414" y="35" width="10" height="14"/><rect x="432" y="35" width="10" height="14"/>
+      <rect x="360" y="60" width="10" height="14"/><rect x="396" y="60" width="10" height="14"/><rect x="432" y="60" width="10" height="14"/>
+      <rect x="378" y="85" width="10" height="14"/><rect x="414" y="85" width="10" height="14"/>
+    </g>
+    <rect x="220" y="70" width="26" height="120" fill="#0e3a5a"/><rect x="255" y="90" width="22" height="100" fill="#0a2e47"/>
+    <rect x="500" y="80" width="24" height="110" fill="#0e3a5a"/><rect x="535" y="60" width="26" height="130" fill="#0a2e47"/>
+    <g transform="translate(120,150)"><rect x="0" y="0" width="60" height="34" rx="6" fill="#fff"/><rect x="6" y="8" width="18" height="10" fill="#0B3B5C"/><text x="34" y="24" font-family="Big Shoulders Display" font-weight="700" font-size="16" fill="#0B3B5C">ART</text></g>
+  </svg>`,
+  day3: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#EFE8D8"/><stop offset="100%" stop-color="#f7f2e6"/></linearGradient></defs>
+    <rect width="800" height="220" fill="url(#sky3)"/>
+    <rect x="0" y="175" width="800" height="45" fill="#c9bfa4"/>
+    <rect x="0" y="185" width="800" height="6" fill="#fff" opacity=".7"/>
+    <g stroke="#fff" stroke-width="6" stroke-dasharray="26 22"><line x1="0" y1="197" x2="800" y2="197"/></g>
+    <g transform="translate(260,70)"><rect x="0" y="30" width="90" height="100" rx="6" fill="#C8102E"/><rect x="18" y="10" width="54" height="30" rx="10" fill="none" stroke="#C8102E" stroke-width="8"/><rect x="10" y="60" width="70" height="6" fill="#fff" opacity=".6"/><rect x="10" y="85" width="70" height="6" fill="#fff" opacity=".6"/></g>
+    <g transform="translate(420,95)"><rect x="0" y="20" width="70" height="80" rx="6" fill="#3FA9DC"/><rect x="14" y="4" width="42" height="24" rx="9" fill="none" stroke="#3FA9DC" stroke-width="7"/><rect x="8" y="46" width="54" height="5" fill="#fff" opacity=".6"/><rect x="8" y="66" width="54" height="5" fill="#fff" opacity=".6"/></g>
+    <g transform="translate(560,60)"><rect x="0" y="35" width="60" height="70" rx="6" fill="#D9A441"/><rect x="12" y="18" width="36" height="22" rx="8" fill="none" stroke="#D9A441" stroke-width="6"/></g>
+    <circle cx="120" cy="60" r="26" fill="#fff"/><text x="120" y="67" text-anchor="middle" font-family="Big Shoulders Display" font-weight="900" font-size="22" fill="#C8102E">%</text>
+  </svg>`,
+  day4: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sky4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3a2a63"/><stop offset="45%" stop-color="#c9557a"/><stop offset="100%" stop-color="#f2a65a"/></linearGradient></defs>
+    <rect width="800" height="220" fill="url(#sky4)"/>
+    <circle cx="620" cy="150" r="46" fill="#FFE9A8"/>
+    <rect x="0" y="175" width="800" height="45" fill="#2a2140"/>
+    <g fill="#241a3a"><ellipse cx="140" cy="185" rx="90" ry="20"/><path d="M90 185q10-45 50-45t50 45z"/><ellipse cx="140" cy="140" rx="10" ry="12"/></g>
+    <g transform="translate(220,120)"><circle cx="0" cy="0" r="30" fill="#3FA9DC" opacity=".92"/><circle cx="34" cy="18" r="22" fill="#C8102E" opacity=".92"/><path d="M0 28v30M34 38v22" stroke="#241a3a" stroke-width="2"/></g>
+    <g transform="translate(430,145)"><path d="M0 30c0 20 40 20 40 0z" fill="#EFE8D8"/><path d="M0 30l20-45 20 45z" fill="#f2a65a"/><circle cx="8" cy="5" r="3" fill="#fff"/><circle cx="20" cy="-3" r="3" fill="#fff"/><circle cx="32" cy="8" r="3" fill="#fff"/></g>
+    <g stroke="#241a3a" stroke-width="3" fill="none"><rect x="560" y="60" width="70" height="70" rx="35"/><line x1="595" y1="130" x2="595" y2="175"/><line x1="560" y1="95" x2="630" y2="95"/></g>
+  </svg>`,
+  day5: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sky5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7fd0e6"/><stop offset="100%" stop-color="#eaf7fb"/></linearGradient></defs>
+    <rect width="800" height="220" fill="url(#sky5)"/>
+    <circle cx="670" cy="55" r="34" fill="#FFE9A8"/>
+    <path d="M0 130q60-40 130 0t130 0 130 0 130 0 130 0 130 0v90H0z" fill="#e8d9a8"/>
+    <path d="M0 160q60-25 130 0t130 0 130 0 130 0 130 0 130 0v60H0z" fill="#d8c284"/>
+    <path d="M0 190q60-12 130 0t130 0 130 0 130 0 130 0 130 0v30H0z" fill="#3FA9DC" opacity=".85"/>
+    <g stroke="#fff" stroke-width="4" fill="none" opacity=".8"><path d="M660 40q6 6 12 0M690 45q6 6 12 0"/></g>
+    <g stroke="#fff" stroke-width="4" fill="none" opacity=".6"><path d="M60 30q6 6 12 0M90 35q6 6 12 0"/></g>
+  </svg>`,
+  day6: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky6a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8fd4ec"/><stop offset="100%" stop-color="#d8f0f7"/></linearGradient>
+      <linearGradient id="sky6b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1c1440"/><stop offset="100%" stop-color="#4a2f63"/></linearGradient>
+    </defs>
+    <rect width="400" height="220" fill="url(#sky6a)"/><rect x="400" width="400" height="220" fill="url(#sky6b)"/>
+    <circle cx="330" cy="45" r="24" fill="#FFE9A8"/>
+    <circle cx="620" cy="45" r="20" fill="#EFE8D8"/><circle cx="612" cy="40" r="17" fill="#4a2f63"/>
+    <circle cx="470" cy="35" r="1.6" fill="#fff"/><circle cx="520" cy="60" r="1.6" fill="#fff"/><circle cx="560" cy="30" r="1.6" fill="#fff"/><circle cx="700" cy="55" r="1.6" fill="#fff"/><circle cx="750" cy="30" r="1.6" fill="#fff"/>
+    <rect x="0" y="185" width="800" height="35" fill="#0a2e47"/>
+    <g stroke="#0B3B5C" stroke-width="6" fill="none"><circle cx="150" cy="115" r="55"/><line x1="150" y1="60" x2="150" y2="170"/><line x1="95" y1="115" x2="205" y2="115"/><line x1="111" y1="76" x2="189" y2="154"/><line x1="189" y1="76" x2="111" y2="154"/></g>
+    <rect x="140" y="170" width="20" height="18" fill="#0B3B5C"/>
+    <g fill="none" stroke="#F4E9C9" stroke-width="4" stroke-linecap="round"><path d="M470 190c10-30 20-40 30-10s20-30 30 0 20-40 30-5 20-30 30 15"/></g>
+    <circle cx="460" cy="188" r="4" fill="#F4E9C9"/><circle cx="660" cy="188" r="4" fill="#F4E9C9"/>
+  </svg>`,
+  day7: `<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sky7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3FA9DC"/><stop offset="100%" stop-color="#dff1fa"/></linearGradient></defs>
+    <rect width="800" height="220" fill="url(#sky7)"/>
+    <ellipse cx="150" cy="50" rx="45" ry="16" fill="#fff" opacity=".85"/><ellipse cx="600" cy="80" rx="55" ry="18" fill="#fff" opacity=".8"/>
+    <rect x="0" y="185" width="800" height="35" fill="#8fbfd6"/>
+    <g transform="translate(300,110)"><rect x="0" y="20" width="70" height="90" rx="8" fill="#C8102E"/><rect x="10" y="0" width="50" height="24" rx="6" fill="#a5281c"/></g>
+    <g transform="translate(420,130)"><rect x="0" y="10" width="60" height="70" rx="8" fill="#3FA9DC"/><rect x="8" y="-8" width="44" height="22" rx="6" fill="#2b7ea6"/></g>
+    <g transform="translate(560,40) rotate(20)"><path d="M0 10 L90 0 L70 20 L90 20 L0 30 Z" fill="#0B3B5C"/></g>
+  </svg>`,
+};
+
+// ---------- Data ----------
+const days = [
+  { id:0, tag:"Llegada", date:"Sáb 26 sept", num:"—", banner:"arrival", caption:"Bienvenidos a Chicago",
+    title:"Llegada a Chicago", theme:"Traslado y descanso", cls:"arrival",
+    items:[ {time:"11:00 pm", h:"Aterrizaje en Chicago", free:true, p:"Migración, equipaje y traslado al hospedaje. Sin actividades programadas — llegada tarde, mejor ir directo a descansar.", tags:["Transporte"]} ]
+  },
+  { id:1, tag:"Día 1", date:"Dom 27 sept", num:"01", banner:"day1", caption:"Chicago en grande",
+    title:"Chicago en grande", theme:"Michigan Ave · Loop · Museum Campus", costPerson:"~$81", costNote:"Big Bus + Shedd Aquarium (sin comida ni compra de celulares)",
+    items:[
+      {time:"10:00 am", h:"Apple Store Michigan Avenue", free:false, price:"Variable", p:"Compra de celulares — este Apple Store abre a las 10:00 am los domingos. Está justo sobre el río, junto al muelle del water taxi.", tags:["401 N Michigan Ave","Abre 10am dom"]},
+      {time:"11:15 am", h:"Big Bus Chicago (Hop-On Hop-Off)", free:false, price:"~$41", p:"El bus panorámico recorre el Loop, Museum Campus, Michigan Avenue y Navy Pier — ideal para ubicarse el primer día.", tags:["Ticket 24h","Bus turístico"]},
+      {time:"1:00 pm", h:"Acuario Shedd", free:false, price:"~$40", p:"Bajada en la parada Museum Campus. Cuenta con 2 a 2.5 horas para recorrerlo con calma.", tags:["Museum Campus","~2.5h"]},
+      {time:"3:15 pm", h:"Almuerzo en Chinatown", free:true, price:"Comida aparte", p:"A solo 10 minutos del acuario — buen punto para sentarse antes de seguir.", tags:["10 min desde Shedd"]},
+      {time:"4:30 pm", h:"Retomar el Big Bus → Millennium Park", free:true, p:"De vuelta al bus (incluido en el ticket) hasta la parada de Millennium Park.", tags:["Incluido en Big Bus"]},
+      {time:"5:00 pm", h:"Millennium Park", free:true, p:"La escultura Cloud Gate ('The Bean') y los jardines del parque — plano y fácil de recorrer.", tags:["Ícono de Chicago"]},
+      {time:"6:15 pm", h:"Michigan Avenue — cena y vitrinas", free:true, price:"Comida aparte", p:"Cierre del día caminando por la Magnificent Mile.", tags:["Compras"]},
+    ]
+  },
+  { id:2, tag:"Día 2", date:"Lun 28 sept", num:"02", banner:"day2", caption:"El corazón del Loop",
+    title:"El corazón del Loop", theme:"Arquitectura y arte", costPerson:"~$87", costNote:"Skydeck + Art Institute + water taxi ida y vuelta (sin cena)",
+    items:[
+      {time:"9:00 am", h:"Willis Tower Skydeck", free:false, price:"~$35", p:"Mismo lugar que 'Mirador Willis' y 'Sky Deck' de la lista original — se unieron en un solo horario. Ir temprano evita las filas (abre 9am-10pm en temporada).", tags:["=Mirador Willis","=Sky Deck"]},
+      {time:"11:00 am", h:"Instituto de Arte de Chicago", free:false, price:"~$32", p:"Una de las mejores colecciones de arte de EE.UU., caminable desde Millennium Park.", tags:["~2h"]},
+      {time:"1:30 pm", h:"Almuerzo en el Loop", free:true, price:"Comida aparte", p:"Restaurantes cerca del Art Institute / Michigan Ave.", tags:[]},
+      {time:"3:00 pm", h:"Water Taxi por el río Chicago", free:false, price:"$10 c/trayecto", p:"Un paseo por el agua para ver el skyline desde otro ángulo — sale justo bajo el Apple Store de Michigan Ave.", tags:["Ida y vuelta ~$20"]},
+      {time:"7:00 pm", h:"Cena: Robert's Pizza Company", free:true, price:"Comida aparte", p:"En River North, cerca de todo lo del día.", tags:["Cena"]},
+    ]
+  },
+  { id:3, tag:"Día 3", date:"Mar 29 sept", num:"03", banner:"day3", caption:"Día de compras",
+    title:"Día de compras: Aurora", theme:"Chicago Premium Outlets", costPerson:"$0 fijo", costNote:"Entrada libre — presupuesto de compras a criterio de cada quien",
+    dialInfo:{min:42, label:"Chicago Premium Outlets está en Aurora, IL — el punto más lejano de compras del itinerario."},
+    items:[
+      {time:"8:30 am", h:"Salida hacia Chicago Premium Outlets", free:true, p:"En Aurora, IL.", tags:["Auto/Uber"]},
+      {time:"9:30 am", h:"Compras en el outlet", free:true, price:"Entrada libre", p:"Más de 160 tiendas al aire libre, abren generalmente 10am — vale la pena contar con al menos 3-4 horas.", tags:["~4h"]},
+      {time:"2:00 pm", h:"Regreso a la ciudad", free:true, p:"De camino se puede parar en una sucursal de Village Discount Outlet si queda cerca del hospedaje.", tags:["Village Discount (opcional)","Entrada libre"]},
+      {time:"Tarde", h:"Tiempo libre", free:true, p:"Día largo de carretera — bueno para bajar el ritmo.", tags:["Descanso"]},
+    ]
+  },
+  { id:4, tag:"Día 4", date:"Mié 30 sept", num:"04", banner:"day4", caption:"Norte y atardecer",
+    title:"Norte y atardecer", theme:"Lincoln Park · Avondale · Near North", costPerson:"~$125", costNote:"Balloon Museum + Museum of Ice Cream + 360 CHICAGO",
+    items:[
+      {time:"9:30 am", h:"Lincoln Park Zoo", free:true, p:"Zoológico gratuito, ritmo relajado.", tags:["Gratis todo el año"]},
+      {time:"11:00 am", h:"Lincoln Park", free:true, p:"Caminata por los jardines junto al lago.", tags:[]},
+      {time:"12:30 pm", h:"Almuerzo", free:true, price:"Comida aparte", p:"En la zona de Lincoln Park.", tags:[]},
+      {time:"1:30 pm", h:"Balloon Museum", free:false, price:"~$55", p:"En Avondale, unos 15-20 minutos desde Lincoln Park. Abre 1-7/8pm entre semana. Confirmar antes de comprar que siga abierto en estas fechas.", tags:["~20 min","Confirmar fechas"]},
+      {time:"3:45 pm", h:"Museum of Ice Cream", free:false, price:"~$40", p:"De vuelta hacia Near North.", tags:[]},
+      {time:"6:00 pm", h:"360 CHICAGO — atardecer", free:false, price:"~$29-38", p:"El sol se pone alrededor de las 6:30–6:45 pm en estas fechas — más económico si se reserva franja de mañana/tarde temprana, pero vale la pena para el atardecer.", tags:["Confirmar hora exacta"]},
+    ],
+  },
+  { id:5, tag:"Día 5", date:"Jue 1 oct", num:"05", banner:"day5", caption:"Costa del lago",
+    title:"Indiana Dunes", theme:"Día completo · Costa del lago Michigan", costPerson:"$25/vehículo", costNote:"Tarifa de entrada del parque, no por persona",
+    dialInfo:{min:55, label:"Indiana Dunes National Park está cruzando hacia Indiana, al este."},
+    items:[
+      {time:"7:30 am", h:"Salida hacia Indiana Dunes National Park", free:true, p:"Salir temprano ayuda a conseguir parqueadero en las playas más cercanas.", tags:["~45 millas"]},
+      {time:"9:00 am", h:"Playa y dunas", free:false, price:"$25/vehículo (7 días)", p:"West Beach o Kemil Beach son las más cercanas a Chicago — senderos suaves entre dunas junto al lago. La tarifa es por carro, no por persona.", tags:["Aire libre"]},
+      {time:"3:00 pm", h:"Salida del parque", free:true, p:"Regreso a Chicago antes de la hora pico.", tags:[]},
+    ]
+  },
+  { id:6, tag:"Día 6", date:"Vie 2 oct", num:"06", banner:"day6", caption:"Navy Pier + Fright Fest",
+    title:"Navy Pier + Six Flags de noche", theme:"FlyOver de día · Fright Fest de noche", costPerson:"~$90 + parqueo", costNote:"FlyOver + entrada nocturna a Six Flags (parqueo aparte)",
+    items:[
+      {time:"10:00 am", h:"FlyOver Chicago", free:false, price:"~$30", p:"En Navy Pier — experiencia de vuelo simulado sobre la ciudad. Confirmar tarifa exacta al reservar.", tags:["Navy Pier","~30 min"]},
+      {time:"12:00 pm", h:"Almuerzo y tiempo libre", free:true, price:"Comida aparte", p:"Aprovechen para descansar antes de la noche larga en el parque.", tags:[]},
+      {time:"3:30 pm", h:"Salida hacia Six Flags Great America", free:true, p:"Gurnee, IL — unos 50 minutos en auto. Six Flags no abre los miércoles en esta temporada, por eso se movió al viernes.", tags:["~50 min"]},
+      {time:"5:00 pm", h:"Six Flags Great America — Fright Fest", free:false, price:"~$55-70", p:"Horario real de 'Fright by Night' para viernes en temporada: 5:00 pm a 11:00 pm. Mazes, scare zones y montañas rusas en la oscuridad.", tags:["5pm-11pm","Parking ~$30-35/auto"]},
+      {time:"11:30 pm", h:"Regreso a Chicago", free:true, p:"Vuelta al hospedaje tras el cierre del parque.", tags:["~50 min"]},
+    ],
+    note:"Six Flags Great America solo abre viernes, sábado y domingo (y algunos jueves) durante Fright Fest — no abre miércoles. Por eso se reubicó aquí, en horario nocturno de 5 a 11 pm, tal como lo pediste."
+  },
+  { id:7, tag:"Día 7", date:"Sáb 3 oct", num:"07", banner:"day7", caption:"Última parada",
+    title:"Última compra y vuelo", theme:"Salida", costPerson:"$0 fijo", costNote:"Entrada libre a los outlets — compras a criterio",
+    items:[
+      {time:"9:00 am", h:"Fashion Outlets of Chicago", free:true, price:"Entrada libre", p:"A solo 5 minutos del aeropuerto O'Hare — la parada de compras perfecta antes de volar.", tags:["Rosemont","5 min de O'Hare"]},
+      {time:"12:00 pm", h:"Regreso y empaque final", free:true, p:"Vuelta al hospedaje para organizar maletas.", tags:[]},
+      {time:"~2:00 pm", h:"Salida hacia el aeropuerto", free:true, p:"Con margen de 3 horas antes del vuelo internacional.", tags:["O'Hare"]},
+      {time:"~4:00-4:30 pm", h:"Despegue (estimado)", free:true, p:"Chicago y Bogotá comparten huso horario en estas fechas; con un vuelo de 6-7 horas, esta hora estimada dejaría la llegada a Bogotá cerca de las 11:00 pm.", tags:["Confirmar con aerolínea"]},
+      {time:"11:00 pm", h:"Llegada a Bogotá", free:true, p:"Fin del viaje.", tags:[]},
+    ]
+  },
+];
+
+const track = document.getElementById('track');
+const panels = document.getElementById('panels');
+
+days.forEach((d,i)=>{
+  const stop = document.createElement('button');
+  stop.className = 'stop' + (i===1?' active':'');
+  stop.dataset.idx = i;
+  stop.innerHTML = `<span class="dot"></span><span class="lbl"><span class="day-tag">${d.tag}</span>${d.date}</span><span class="mini-prog" data-prog="${i}"></span>`;
+  stop.addEventListener('click', ()=>select(i));
+  track.appendChild(stop);
+
+  const panel = document.createElement('div');
+  panel.className = 'panel' + (i===1?' active':'') + (d.cls?(' '+d.cls):'');
+  panel.dataset.idx = i;
+
+  const itemsHtml = d.items.map((it,ii)=>`
+    <div class="item" data-day="${i}" data-item="${ii}">
+      <div class="check">${CHECK_SVG}</div>
+      <div class="time">${it.time}</div>
+      <h3>${it.h} ${priceTag(it.price||'', it.free)}</h3>
+      <p>${it.p}</p>
+      ${it.tags && it.tags.length ? `<div class="meta">${it.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : ''}
+    </div>
+  `).join('');
+
+  panel.innerHTML = `
+    <div class="banner">${BANNERS[d.banner]}<div class="banner-caption">${d.caption}</div></div>
+    <div class="day-head">
+      <div class="day-num">${d.num}</div>
+      <div class="day-titles">
+        <h2>${d.title}</h2>
+        <div class="date">${d.date}</div>
+      </div>
+    </div>
+    <div class="day-strip">
+      <span class="day-theme">${d.theme}</span>
+      ${d.costPerson ? `<span class="cost-chip">💵 ${d.costPerson} / persona</span>` : ''}
+      <div class="progress-track"><div class="progress-fill" data-fill="${i}"></div></div>
+      <span class="progress-label" data-label="${i}">0 / ${d.items.length}</span>
+    </div>
+    ${d.costNote ? `<div class="note" style="margin-top:12px;"><b>Presupuesto del día:</b> ${d.costNote}.</div>` : ''}
+    ${d.dialInfo ? dial(d.dialInfo.min, d.dialInfo.label) : ''}
+    <div class="timeline">${itemsHtml}</div>
+    ${d.note ? `<div class="note"><b>Ojo:</b> ${d.note}</div>` : ''}
+  `;
+  panels.appendChild(panel);
+});
+
+function select(i){
+  document.querySelectorAll('.stop').forEach(s=>s.classList.toggle('active', +s.dataset.idx===i));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', +p.dataset.idx===i));
+  document.querySelectorAll('.stop')[i].scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+}
+
+let totalItems = 0, totalDone = 0;
+days.forEach(d=>totalItems += d.items.length);
+function updateOverall(){ document.getElementById('overallChip').innerHTML = `✔️ <b>${totalDone} / ${totalItems}</b> actividades marcadas`; }
+function updateDayProgress(dayIdx){
+  const items = document.querySelectorAll(`.item[data-day="${dayIdx}"]`);
+  const done = document.querySelectorAll(`.item[data-day="${dayIdx}"].done`).length;
+  const fill = document.querySelector(`[data-fill="${dayIdx}"]`);
+  const label = document.querySelector(`[data-label="${dayIdx}"]`);
+  const prog = document.querySelector(`[data-prog="${dayIdx}"]`);
+  const pct = items.length ? Math.round((done/items.length)*100) : 0;
+  if(fill) fill.style.width = pct + '%';
+  if(label) label.textContent = `${done} / ${items.length}`;
+  if(prog) prog.textContent = done>0 ? `${pct}%` : '';
+}
+panels.addEventListener('click', (e)=>{
+  const item = e.target.closest('.item');
+  if(!item) return;
+  const wasDone = item.classList.contains('done');
+  item.classList.toggle('done');
+  totalDone += wasDone ? -1 : 1;
+  updateOverall();
+  updateDayProgress(item.dataset.day);
+});
+days.forEach((d,i)=>updateDayProgress(i));
+updateOverall();
+
+const toast = document.getElementById('toast');
+function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 2400); }
+document.getElementById('shareBtn').addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText(window.location.href); showToast('Enlace copiado — listo para compartir'); }
+  catch(e){ showToast('Guarda este archivo y compártelo directamente'); }
+});
+document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+</script>
+
+</body>
+</html>
